@@ -8,11 +8,11 @@ const { JSDOM } = require("jsdom");
 const root = path.resolve(__dirname, "..");
 const source = name => fs.readFileSync(path.join(root, name), "utf8");
 
-async function page(html, pathname = "/") {
+async function page(html, pathname = "/", initialSettings) {
   const dom = new JSDOM(html, { url: `https://www.youtube.com${pathname}`, pretendToBeVisual: true });
   const callbacks = [];
   const redirects = [];
-  let values = {};
+  let values = { settings: initialSettings };
   const browser = {
     storage: {
       local: {
@@ -115,6 +115,13 @@ test("pause removes hiding rules and prevents route redirects until resumed", as
   dom.window.close();
 });
 
+test("saved pause prevents a redirect during startup", async () => {
+  const { dom, redirects } = await page("<html><head></head><body></body></html>", "/playables", { paused: true });
+  assert.deepEqual(redirects, []);
+  assert.equal(dom.window.document.getElementById("unhook-playables-style").textContent, "");
+  dom.window.close();
+});
+
 test("focused controls hide channel recommendations without hiding other channel shelves", async () => {
   const html = '<html><head></head><body><ytd-rich-section-renderer id="suggested"><h2>For you</h2></ytd-rich-section-renderer><ytd-rich-section-renderer id="uploads"><h2>Uploads</h2></ytd-rich-section-renderer></body></html>';
   const { dom, browser, wait } = await page(html, "/@example");
@@ -130,6 +137,27 @@ test("focused controls hide channel recommendations without hiding other channel
   assert.match(css, /ytd-post-renderer/);
   assert.match(css, /ytd-search ytd-video-renderer/);
   assert.match(css, /yt-chip-cloud-renderer/);
+  dom.window.close();
+});
+
+test("changed links and headings update shelf markers and removed style is restored", async () => {
+  const html = '<html><head></head><body><ytd-rich-section-renderer id="shelf"><a href="/watch?v=1">Game</a></ytd-rich-section-renderer><ytd-search><ytd-shelf-renderer id="search"><h2>Latest from</h2></ytd-shelf-renderer></ytd-search></body></html>';
+  const { dom, wait } = await page(html, "/results");
+  const shelf = dom.window.document.getElementById("shelf");
+  const link = shelf.querySelector("a");
+  const search = dom.window.document.getElementById("search");
+  assert.equal(shelf.hasAttribute("data-unhook-playables"), false);
+  assert.equal(search.hasAttribute("data-unhook-search-clutter"), true);
+  link.setAttribute("href", "/playables/game/1");
+  search.querySelector("h2").firstChild.data = "Results";
+  await wait();
+  assert.equal(shelf.hasAttribute("data-unhook-playables"), true);
+  assert.equal(search.hasAttribute("data-unhook-search-clutter"), false);
+  link.setAttribute("href", "/watch?v=1");
+  dom.window.document.getElementById("unhook-playables-style").remove();
+  await wait();
+  assert.equal(shelf.hasAttribute("data-unhook-playables"), false);
+  assert.ok(dom.window.document.getElementById("unhook-playables-style"));
   dom.window.close();
 });
 

@@ -38,6 +38,7 @@
   let style;
   let observer;
   let scanPending = false;
+  let settingsLoaded = false;
   let redirectPending = false;
   let redirectedFrom = "";
 
@@ -45,13 +46,16 @@
     if (!style) {
       style = document.createElement("style");
       style.id = "unhook-playables-style";
+    }
+    if (!style.isConnected) {
       (document.head || document.documentElement).appendChild(style);
     }
-    const selectors = Object.entries(RULES).flatMap(([key, list]) => !settings.paused && settings[key] ? list : []);
-    style.textContent = selectors.length ? `${selectors.join(",\n")} { display: none !important; }` : "";
+    const selectors = Object.entries(RULES).flatMap(([key, list]) => settingsLoaded && !settings.paused && settings[key] ? list : []);
+    style.textContent = selectors.map(selector => `${selector} { display: none !important; }`).join("\n");
   }
 
   function checkRoute() {
+    if (!settingsLoaded) return;
     if (settings.paused) {
       redirectPending = false;
       return;
@@ -71,15 +75,11 @@
   }
 
   function markPlayables() {
-    document.querySelectorAll("a[href^='/playables']").forEach(link => {
-      const shelf = link.closest("ytd-rich-section-renderer, ytd-rich-shelf-renderer, ytd-grid-shelf-view-model, ytm-rich-section-renderer, ytm-item-section-renderer");
-      if (shelf) shelf.setAttribute("data-unhook-playables", "");
-    });
-    document.querySelectorAll("ytd-rich-section-renderer, ytd-rich-shelf-renderer, ytm-rich-section-renderer").forEach(shelf => {
+    document.querySelectorAll("ytd-rich-section-renderer, ytd-rich-shelf-renderer, ytd-grid-shelf-view-model, ytm-rich-section-renderer, ytm-item-section-renderer").forEach(shelf => {
       const heading = shelf.querySelector("#title, #title-text, h2, h3");
-      if (heading && /^(youtube\s+)?playables$/i.test(heading.textContent.trim())) {
-        shelf.setAttribute("data-unhook-playables", "");
-      }
+      const hasPlayables = !!shelf.querySelector("a[href^='/playables']") ||
+        !!(heading && /^(youtube\s+)?playables$/i.test(heading.textContent.trim()));
+      shelf.toggleAttribute("data-unhook-playables", hasPlayables);
     });
   }
 
@@ -87,17 +87,15 @@
     const clutter = /^(related to your search|latest from|searches related to|people also search for|for you|previously watched)$/i;
     document.querySelectorAll("ytd-search ytd-shelf-renderer, ytd-search ytd-horizontal-card-list-renderer, ytm-search ytm-shelf-renderer").forEach(shelf => {
       const heading = shelf.querySelector("#title, #title-text, h2, h3");
-      if (heading && clutter.test(heading.textContent.trim())) shelf.setAttribute("data-unhook-search-clutter", "");
+      shelf.toggleAttribute("data-unhook-search-clutter", !!(heading && clutter.test(heading.textContent.trim())));
     });
   }
 
   function markChannelRecommendations() {
-    if (!/^\/(?:@[^/]+|channel\/[^/]+|c\/[^/]+|user\/[^/]+)(?:\/|$)/.test(location.pathname)) return;
+    const onChannel = /^\/(?:@[^/]+|channel\/[^/]+|c\/[^/]+|user\/[^/]+)(?:\/|$)/.test(location.pathname);
     document.querySelectorAll("ytd-rich-section-renderer, ytd-rich-shelf-renderer, ytm-rich-section-renderer").forEach(shelf => {
       const heading = shelf.querySelector("#title, #title-text, h2, h3");
-      if (heading && /^for you$/i.test(heading.textContent.trim())) {
-        shelf.setAttribute("data-unhook-channel-recommendations", "");
-      }
+      shelf.toggleAttribute("data-unhook-channel-recommendations", !!(onChannel && heading && /^for you$/i.test(heading.textContent.trim())));
     });
   }
 
@@ -111,6 +109,8 @@
 
   function scan() {
     scanPending = false;
+    if (!style.isConnected) updateStyle();
+    if (!settingsLoaded) return;
     if (settings.paused) return;
     checkRoute();
     if (settings.playables) markPlayables();
@@ -127,13 +127,25 @@
 
   function startObserver() {
     if (observer || !document.documentElement) return;
-    observer = new MutationObserver(scheduleScan);
-    observer.observe(document.documentElement, { childList: true, subtree: true });
+    observer = new MutationObserver(mutations => {
+      if (mutations.some(mutation => mutation.type !== "characterData" ||
+        mutation.target.parentElement?.closest("ytd-rich-section-renderer, ytd-rich-shelf-renderer, ytd-grid-shelf-view-model, ytm-rich-section-renderer, ytm-item-section-renderer, ytd-shelf-renderer, ytd-horizontal-card-list-renderer, ytm-shelf-renderer"))) {
+        scheduleScan();
+      }
+    });
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ["href", "aria-checked", "aria-label", "checked"]
+    });
     scheduleScan();
   }
 
   function applySettings(saved) {
     settings = normalizeUnhookSettings(saved);
+    settingsLoaded = true;
     updateStyle();
     checkRoute();
     scheduleScan();
