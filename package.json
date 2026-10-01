@@ -1,0 +1,18 @@
+{
+  "name": "unhook-playables",
+  "version": "0.1.0",
+  "description": "Firefox extension that hides distracting YouTube UI and blocks Playables.",
+  "scripts": {
+    "test": "node --test",
+    "lint": "web-ext lint --source-dir .",
+    "build": "web-ext build --source-dir . --artifacts-dir web-ext-artifacts --ignore-files test package.json package-lock.json README.md --overwrite-dest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "jsdom": "^30.1.1",
+    "web-ext": "^10.7.0"
+  }
+}
