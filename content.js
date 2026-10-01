@@ -43,11 +43,15 @@
       style.id = "unhook-playables-style";
       (document.head || document.documentElement).appendChild(style);
     }
-    const selectors = Object.entries(RULES).flatMap(([key, list]) => settings[key] ? list : []);
+    const selectors = Object.entries(RULES).flatMap(([key, list]) => !settings.paused && settings[key] ? list : []);
     style.textContent = selectors.length ? `${selectors.join(",\n")} { display: none !important; }` : "";
   }
 
   function checkRoute() {
+    if (settings.paused) {
+      redirectPending = false;
+      return;
+    }
     const path = location.pathname;
     if (redirectPending && path !== redirectedFrom) redirectPending = false;
     if (redirectPending) return;
@@ -93,6 +97,7 @@
 
   function scan() {
     scanPending = false;
+    if (settings.paused) return;
     checkRoute();
     if (settings.playables) markPlayables();
     if (settings.searchClutter) markSearchClutter();

@@ -38,6 +38,7 @@ const UNHOOK_GROUPS = [
 const UNHOOK_DEFAULTS = Object.fromEntries(
   UNHOOK_GROUPS.flatMap(group => group.options.map(([key, , enabled]) => [key, enabled]))
 );
+UNHOOK_DEFAULTS.paused = false;
 
 function normalizeUnhookSettings(saved) {
   const values = saved && typeof saved === "object" ? saved : {};

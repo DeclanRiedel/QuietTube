@@ -97,6 +97,24 @@ test("autoplay control gets switched off", async () => {
   dom.window.close();
 });
 
+test("pause removes hiding rules and prevents route redirects until resumed", async () => {
+  const { dom, browser, location, redirects, wait } = await page("<html><head></head><body></body></html>", "/watch");
+  const style = dom.window.document.getElementById("unhook-playables-style");
+  assert.match(style.textContent, /ytd-comments/);
+  await browser.storage.local.set({ settings: { paused: true } });
+  await wait();
+  assert.equal(style.textContent, "");
+  location.pathname = "/playables";
+  dom.window.document.dispatchEvent(new dom.window.Event("yt-navigate-finish"));
+  await wait();
+  assert.deepEqual(redirects, []);
+  await browser.storage.local.set({ settings: { paused: false } });
+  await wait();
+  assert.match(style.textContent, /ytd-comments/);
+  assert.deepEqual(redirects, ["/feed/subscriptions"]);
+  dom.window.close();
+});
+
 test("popup renders every option and saves changes", async () => {
   const dom = new JSDOM(source("popup.html"), { url: "moz-extension://test/popup.html" });
   let stored = {};
@@ -108,7 +126,7 @@ test("popup renders every option and saves changes", async () => {
   vm.runInContext(source("settings.js"), context);
   vm.runInContext(source("popup.js"), context);
   await new Promise(resolve => setTimeout(resolve, 0));
-  assert.equal(dom.window.document.querySelectorAll("input[type=checkbox]").length, 25);
+  assert.equal(dom.window.document.querySelectorAll("input[type=checkbox]").length, 26);
   const checkbox = dom.window.document.getElementById("playables");
   assert.equal(checkbox.checked, true);
   checkbox.checked = false;

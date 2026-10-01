@@ -3,6 +3,7 @@
 const container = document.getElementById("settings");
 const status = document.getElementById("status");
 let current = normalizeUnhookSettings();
+document.getElementById("paused").addEventListener("change", event => save({ ...current, paused: event.target.checked }));
 
 for (const group of UNHOOK_GROUPS) {
   const section = document.createElement("section");
