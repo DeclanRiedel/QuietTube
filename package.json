@@ -1,7 +1,7 @@
 {
-  "name": "unhook-playables",
+  "name": "quitetube",
   "version": "0.1.0",
-  "description": "Firefox extension that hides distracting YouTube UI and blocks Playables.",
+  "description": "Hide what you don't want from YouTube.",
   "scripts": {
     "test": "node --test",
     "lint": "web-ext lint --source-dir .",

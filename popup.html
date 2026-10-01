@@ -3,18 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Unhook Playables</title>
+  <title>QuiteTube</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <header>
-    <div class="brand">▶ <strong>Unhook Playables</strong></div>
-    <p>Choose what YouTube shows.</p>
+    <button id="pause-toggle" type="button" aria-label="Pause QuiteTube" aria-pressed="false" title="Pause QuiteTube">
+      <img id="pause-icon" src="icon.svg" alt="" width="40" height="40">
+    </button>
+    <div class="brand">
+      <strong>QuiteTube</strong>
+      <p>Hide what you don't want from YouTube.</p>
+    </div>
   </header>
-  <label class="pause-control" for="paused">
-    <span><strong>Pause extension</strong><small>Show YouTube normally</small></span>
-    <input id="paused" type="checkbox">
-  </label>
   <label class="preset-control" for="preset">
     <span>Preset</span>
     <select id="preset">
@@ -22,11 +23,7 @@
     </select>
   </label>
   <main id="settings" aria-label="YouTube settings"></main>
-  <footer>
-    <button id="enable-all" type="button">Enable all</button>
-    <button id="disable-all" type="button">Disable all</button>
-    <span id="status" role="status" aria-live="polite"></span>
-  </footer>
+  <p id="error" role="alert" hidden></p>
   <script src="settings.js"></script>
   <script src="popup.js"></script>
 </body>

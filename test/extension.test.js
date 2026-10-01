@@ -172,7 +172,11 @@ test("popup renders every option and saves changes", async () => {
   vm.runInContext(source("settings.js"), context);
   vm.runInContext(source("popup.js"), context);
   await new Promise(resolve => setTimeout(resolve, 0));
-  assert.equal(dom.window.document.querySelectorAll("input[type=checkbox]").length, 30);
+  assert.equal(dom.window.document.querySelectorAll("input[type=checkbox]").length, 29);
+  assert.equal(dom.window.document.querySelector(".brand strong").textContent, "QuiteTube");
+  assert.equal(dom.window.document.getElementById("status"), null);
+  assert.equal(dom.window.document.getElementById("enable-all"), null);
+  assert.equal(dom.window.document.getElementById("disable-all"), null);
   const checkbox = dom.window.document.getElementById("playables");
   assert.equal(checkbox.checked, true);
   checkbox.checked = false;
@@ -180,6 +184,11 @@ test("popup renders every option and saves changes", async () => {
   await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(stored.settings.playables, false);
   assert.equal(dom.window.document.getElementById("preset").value, "custom");
+  dom.window.document.getElementById("pause-toggle").click();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(stored.settings.paused, true);
+  assert.match(dom.window.document.getElementById("pause-icon").src, /icon-paused\.svg$/);
+  assert.equal(dom.window.document.getElementById("pause-toggle").getAttribute("aria-label"), "Resume QuiteTube");
   dom.window.close();
 });
 
@@ -202,8 +211,31 @@ test("presets apply feature settings while preserving pause", async () => {
   assert.equal(stored.settings.paused, true);
   assert.equal(stored.settings.redirectSubscriptions, true);
   assert.equal(stored.settings.channelRecommendations, true);
-  dom.window.document.getElementById("enable-all").click();
+  dom.window.document.getElementById("pause-toggle").click();
   await new Promise(resolve => setTimeout(resolve, 0));
-  assert.equal(stored.settings.paused, true);
+  assert.equal(stored.settings.paused, false);
   dom.window.close();
+});
+
+test("toolbar icon follows saved pause state", async () => {
+  const icons = [];
+  const titles = [];
+  let onChange;
+  const browser = {
+    storage: {
+      local: { get: async () => ({ settings: { paused: true } }) },
+      onChanged: { addListener: callback => { onChange = callback; } }
+    },
+    browserAction: {
+      setIcon: details => icons.push(details.path),
+      setTitle: details => titles.push(details.title)
+    }
+  };
+  vm.runInNewContext(source("background.js"), { browser });
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(icons.at(-1), "icon-paused.svg");
+  assert.equal(titles.at(-1), "QuiteTube — paused");
+  onChange({ settings: { newValue: { paused: false } } }, "local");
+  assert.equal(icons.at(-1), "icon.svg");
+  assert.equal(titles.at(-1), "QuiteTube — active");
 });
