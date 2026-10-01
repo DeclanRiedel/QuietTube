@@ -3,6 +3,10 @@
   "name": "Unhook Playables",
   "version": "0.1.0",
   "description": "Hide distracting YouTube sections, including Playables.",
+  "icons": {
+    "32": "icon.svg",
+    "64": "icon.svg"
+  },
   "browser_specific_settings": {
     "gecko": {
       "id": "unhook-playables@local",
@@ -16,6 +20,10 @@
   "permissions": ["storage", "*://www.youtube.com/*", "*://m.youtube.com/*"],
   "browser_action": {
     "default_title": "Unhook Playables",
+    "default_icon": {
+      "16": "icon.svg",
+      "32": "icon.svg"
+    },
     "default_popup": "popup.html"
   },
   "content_scripts": [
