@@ -115,6 +115,24 @@ test("pause removes hiding rules and prevents route redirects until resumed", as
   dom.window.close();
 });
 
+test("focused controls hide channel recommendations without hiding other channel shelves", async () => {
+  const html = '<html><head></head><body><ytd-rich-section-renderer id="suggested"><h2>For you</h2></ytd-rich-section-renderer><ytd-rich-section-renderer id="uploads"><h2>Uploads</h2></ytd-rich-section-renderer></body></html>';
+  const { dom, browser, wait } = await page(html, "/@example");
+  const suggested = dom.window.document.getElementById("suggested");
+  const uploads = dom.window.document.getElementById("uploads");
+  assert.equal(suggested.hasAttribute("data-unhook-channel-recommendations"), false);
+  await browser.storage.local.set({ settings: { channelRecommendations: true, communityPosts: true, searchShorts: true, topicChips: true } });
+  await wait();
+  assert.equal(suggested.hasAttribute("data-unhook-channel-recommendations"), true);
+  assert.equal(uploads.hasAttribute("data-unhook-channel-recommendations"), false);
+  const css = dom.window.document.getElementById("unhook-playables-style").textContent;
+  assert.match(css, /\[data-unhook-channel-recommendations\]/);
+  assert.match(css, /ytd-post-renderer/);
+  assert.match(css, /ytd-search ytd-video-renderer/);
+  assert.match(css, /yt-chip-cloud-renderer/);
+  dom.window.close();
+});
+
 test("popup renders every option and saves changes", async () => {
   const dom = new JSDOM(source("popup.html"), { url: "moz-extension://test/popup.html" });
   let stored = {};
@@ -126,7 +144,7 @@ test("popup renders every option and saves changes", async () => {
   vm.runInContext(source("settings.js"), context);
   vm.runInContext(source("popup.js"), context);
   await new Promise(resolve => setTimeout(resolve, 0));
-  assert.equal(dom.window.document.querySelectorAll("input[type=checkbox]").length, 26);
+  assert.equal(dom.window.document.querySelectorAll("input[type=checkbox]").length, 30);
   const checkbox = dom.window.document.getElementById("playables");
   assert.equal(checkbox.checked, true);
   checkbox.checked = false;

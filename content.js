@@ -27,7 +27,11 @@
     annotations: [".annotation", ".ytp-paid-content-overlay", ".ytp-iv-player-content"],
     header: ["ytd-masthead", "ytm-mobile-topbar-renderer"],
     notificationBell: ["ytd-notification-topbar-button-renderer", "ytm-notification-topbar-button-renderer"],
-    searchClutter: ["ytd-search [data-unhook-search-clutter]", "ytm-search [data-unhook-search-clutter]"]
+    searchClutter: ["ytd-search [data-unhook-search-clutter]", "ytm-search [data-unhook-search-clutter]"],
+    communityPosts: ["ytd-post-renderer", "ytd-backstage-post-thread-renderer", "ytm-post-renderer", "ytm-backstage-post-renderer"],
+    channelRecommendations: ["[data-unhook-channel-recommendations]"],
+    searchShorts: ["ytd-search ytd-reel-shelf-renderer", "ytd-search ytd-video-renderer:has(a[href^='/shorts/'])", "ytm-search ytm-reel-shelf-renderer", "ytm-search ytm-video-with-context-renderer:has(a[href^='/shorts/'])"],
+    topicChips: ["ytd-feed-filter-chip-bar-renderer", "yt-chip-cloud-renderer", "ytm-chip-cloud-renderer"]
   };
 
   let settings = normalizeUnhookSettings();
@@ -87,6 +91,16 @@
     });
   }
 
+  function markChannelRecommendations() {
+    if (!/^\/(?:@[^/]+|channel\/[^/]+|c\/[^/]+|user\/[^/]+)(?:\/|$)/.test(location.pathname)) return;
+    document.querySelectorAll("ytd-rich-section-renderer, ytd-rich-shelf-renderer, ytm-rich-section-renderer").forEach(shelf => {
+      const heading = shelf.querySelector("#title, #title-text, h2, h3");
+      if (heading && /^for you$/i.test(heading.textContent.trim())) {
+        shelf.setAttribute("data-unhook-channel-recommendations", "");
+      }
+    });
+  }
+
   function disableAutoplay() {
     if (!settings.autoplay) return;
     document.querySelectorAll("video[autoplay]").forEach(video => video.removeAttribute("autoplay"));
@@ -101,6 +115,7 @@
     checkRoute();
     if (settings.playables) markPlayables();
     if (settings.searchClutter) markSearchClutter();
+    if (settings.channelRecommendations) markChannelRecommendations();
     disableAutoplay();
   }
 

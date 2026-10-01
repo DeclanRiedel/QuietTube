@@ -10,7 +10,9 @@ const UNHOOK_GROUPS = [
     ["moreFromYoutube", "Hide More from YouTube", true],
     ["subscriptionsLink", "Hide subscriptions link", false],
     ["redirectSubscriptions", "Open subscriptions on YouTube home", false],
-    ["mixes", "Hide Mix and Radio playlists", true]
+    ["mixes", "Hide Mix and Radio playlists", true],
+    ["communityPosts", "Hide community posts", false],
+    ["channelRecommendations", "Hide channel For you shelves", false]
   ]},
   { name: "Watching", options: [
     ["sidebar", "Hide video sidebar", true],
@@ -31,7 +33,9 @@ const UNHOOK_GROUPS = [
   { name: "Navigation and search", options: [
     ["header", "Hide top header", false],
     ["notificationBell", "Hide notification bell", false],
-    ["searchClutter", "Hide unrelated search sections", true]
+    ["searchClutter", "Hide unrelated search sections", true],
+    ["searchShorts", "Hide Shorts in search", false],
+    ["topicChips", "Hide topic chips", false]
   ]}
 ];
 

@@ -15,5 +15,6 @@ Run `npm install`, `npm test`, `npm run lint`, and `npm run build` to verify and
 - Disable autoplay; hide annotations, notification bell, or top header.
 - Redirect direct Playables pages to subscriptions; optionally redirect YouTube home to subscriptions.
 - Include selectors for desktop and mobile YouTube. No network requests or data collection.
+- Optional controls for community posts, Shorts in search, topic chips, and channel "For you" shelves. The channel shelf label currently matches English text.
 
 YouTube changes markup often. Selectors may need updates as its interface changes. Autoplay toggling depends on YouTube exposing its player control.
