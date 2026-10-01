@@ -151,5 +151,31 @@ test("popup renders every option and saves changes", async () => {
   checkbox.dispatchEvent(new dom.window.Event("change"));
   await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(stored.settings.playables, false);
+  assert.equal(dom.window.document.getElementById("preset").value, "custom");
+  dom.window.close();
+});
+
+test("presets apply feature settings while preserving pause", async () => {
+  const dom = new JSDOM(source("popup.html"), { url: "moz-extension://test/popup.html" });
+  let stored = { settings: { paused: true } };
+  const browser = { storage: { local: {
+    get: async () => stored,
+    set: async next => { stored = next; }
+  } } };
+  const context = vm.createContext({ document: dom.window.document, browser, console });
+  vm.runInContext(source("settings.js"), context);
+  vm.runInContext(source("popup.js"), context);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  const preset = dom.window.document.getElementById("preset");
+  assert.equal(preset.value, "balanced");
+  preset.value = "subscriptions";
+  preset.dispatchEvent(new dom.window.Event("change"));
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(stored.settings.paused, true);
+  assert.equal(stored.settings.redirectSubscriptions, true);
+  assert.equal(stored.settings.channelRecommendations, true);
+  dom.window.document.getElementById("enable-all").click();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(stored.settings.paused, true);
   dom.window.close();
 });

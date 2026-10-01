@@ -2,8 +2,18 @@
 
 const container = document.getElementById("settings");
 const status = document.getElementById("status");
+const preset = document.getElementById("preset");
 let current = normalizeUnhookSettings();
 document.getElementById("paused").addEventListener("change", event => save({ ...current, paused: event.target.checked }));
+for (const [key, value] of Object.entries(UNHOOK_PRESETS)) {
+  const option = document.createElement("option");
+  option.value = key;
+  option.textContent = value.label;
+  preset.appendChild(option);
+}
+preset.addEventListener("change", () => {
+  if (UNHOOK_PRESETS[preset.value]) save({ ...UNHOOK_PRESETS[preset.value].settings, paused: current.paused });
+});
 
 for (const group of UNHOOK_GROUPS) {
   const section = document.createElement("section");
@@ -26,6 +36,9 @@ for (const group of UNHOOK_GROUPS) {
 
 function render() {
   for (const [key, value] of Object.entries(current)) document.getElementById(key).checked = value;
+  preset.value = Object.keys(UNHOOK_PRESETS).find(key =>
+    Object.keys(UNHOOK_DEFAULTS).every(option => option === "paused" || current[option] === UNHOOK_PRESETS[key].settings[option])
+  ) || "custom";
 }
 
 async function save(next) {
@@ -41,8 +54,8 @@ async function save(next) {
   }
 }
 
-document.getElementById("enable-all").addEventListener("click", () => save(Object.fromEntries(Object.keys(current).map(key => [key, true]))));
-document.getElementById("disable-all").addEventListener("click", () => save(Object.fromEntries(Object.keys(current).map(key => [key, false]))));
+document.getElementById("enable-all").addEventListener("click", () => save({ ...current, ...Object.fromEntries(Object.keys(UNHOOK_DEFAULTS).filter(key => key !== "paused").map(key => [key, true])) }));
+document.getElementById("disable-all").addEventListener("click", () => save({ ...current, ...Object.fromEntries(Object.keys(UNHOOK_DEFAULTS).filter(key => key !== "paused").map(key => [key, false])) }));
 browser.storage.local.get("settings").then(result => {
   current = normalizeUnhookSettings(result.settings);
   render();

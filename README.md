@@ -16,5 +16,6 @@ Run `npm install`, `npm test`, `npm run lint`, and `npm run build` to verify and
 - Redirect direct Playables pages to subscriptions; optionally redirect YouTube home to subscriptions.
 - Include selectors for desktop and mobile YouTube. No network requests or data collection.
 - Optional controls for community posts, Shorts in search, topic chips, and channel "For you" shelves. The channel shelf label currently matches English text.
+- Pause switch and Balanced, Minimal, or Subscriptions only presets in the popup.
 
 YouTube changes markup often. Selectors may need updates as its interface changes. Autoplay toggling depends on YouTube exposing its player control.

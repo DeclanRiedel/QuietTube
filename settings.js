@@ -44,6 +44,24 @@ const UNHOOK_DEFAULTS = Object.fromEntries(
 );
 UNHOOK_DEFAULTS.paused = false;
 
+const UNHOOK_PRESETS = {
+  balanced: { label: "Balanced", settings: { ...UNHOOK_DEFAULTS } },
+  minimal: { label: "Minimal", settings: { ...Object.fromEntries(Object.keys(UNHOOK_DEFAULTS).map(key => [key, false])), playables: true, shorts: true } },
+  subscriptions: { label: "Subscriptions only", settings: {
+    ...Object.fromEntries(Object.keys(UNHOOK_DEFAULTS).map(key => [key, false])),
+    homeFeed: true,
+    shorts: true,
+    playables: true,
+    explore: true,
+    moreFromYoutube: true,
+    mixes: true,
+    communityPosts: true,
+    channelRecommendations: true,
+    searchShorts: true,
+    redirectSubscriptions: true
+  } }
+};
+
 function normalizeUnhookSettings(saved) {
   const values = saved && typeof saved === "object" ? saved : {};
   return Object.fromEntries(Object.entries(UNHOOK_DEFAULTS).map(([key, fallback]) => [
