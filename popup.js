@@ -4,18 +4,8 @@ const container = document.getElementById("settings");
 const errorMessage = document.getElementById("error");
 const pauseToggle = document.getElementById("pause-toggle");
 const pauseIcon = document.getElementById("pause-icon");
-const preset = document.getElementById("preset");
 let current = normalizeUnhookSettings();
 pauseToggle.addEventListener("click", () => save({ ...current, paused: !current.paused }));
-for (const [key, value] of Object.entries(UNHOOK_PRESETS)) {
-  const option = document.createElement("option");
-  option.value = key;
-  option.textContent = value.label;
-  preset.appendChild(option);
-}
-preset.addEventListener("change", () => {
-  if (UNHOOK_PRESETS[preset.value]) save({ ...UNHOOK_PRESETS[preset.value].settings, paused: current.paused });
-});
 
 for (const group of UNHOOK_GROUPS) {
   const section = document.createElement("section");
@@ -44,9 +34,6 @@ function render() {
   pauseToggle.setAttribute("aria-pressed", String(current.paused));
   pauseToggle.setAttribute("aria-label", current.paused ? "Resume QuiteTube" : "Pause QuiteTube");
   pauseToggle.title = current.paused ? "Resume QuiteTube" : "Pause QuiteTube";
-  preset.value = Object.keys(UNHOOK_PRESETS).find(key =>
-    Object.keys(UNHOOK_DEFAULTS).every(option => option === "paused" || current[option] === UNHOOK_PRESETS[key].settings[option])
-  ) || "custom";
 }
 
 async function save(next) {

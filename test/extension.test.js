@@ -177,43 +177,18 @@ test("popup renders every option and saves changes", async () => {
   assert.equal(dom.window.document.getElementById("status"), null);
   assert.equal(dom.window.document.getElementById("enable-all"), null);
   assert.equal(dom.window.document.getElementById("disable-all"), null);
+  assert.equal(dom.window.document.getElementById("preset"), null);
   const checkbox = dom.window.document.getElementById("playables");
   assert.equal(checkbox.checked, true);
   checkbox.checked = false;
   checkbox.dispatchEvent(new dom.window.Event("change"));
   await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(stored.settings.playables, false);
-  assert.equal(dom.window.document.getElementById("preset").value, "custom");
   dom.window.document.getElementById("pause-toggle").click();
   await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(stored.settings.paused, true);
   assert.match(dom.window.document.getElementById("pause-icon").src, /icon-paused\.svg$/);
   assert.equal(dom.window.document.getElementById("pause-toggle").getAttribute("aria-label"), "Resume QuiteTube");
-  dom.window.close();
-});
-
-test("presets apply feature settings while preserving pause", async () => {
-  const dom = new JSDOM(source("popup.html"), { url: "moz-extension://test/popup.html" });
-  let stored = { settings: { paused: true } };
-  const browser = { storage: { local: {
-    get: async () => stored,
-    set: async next => { stored = next; }
-  } } };
-  const context = vm.createContext({ document: dom.window.document, browser, console });
-  vm.runInContext(source("settings.js"), context);
-  vm.runInContext(source("popup.js"), context);
-  await new Promise(resolve => setTimeout(resolve, 0));
-  const preset = dom.window.document.getElementById("preset");
-  assert.equal(preset.value, "balanced");
-  preset.value = "subscriptions";
-  preset.dispatchEvent(new dom.window.Event("change"));
-  await new Promise(resolve => setTimeout(resolve, 0));
-  assert.equal(stored.settings.paused, true);
-  assert.equal(stored.settings.redirectSubscriptions, true);
-  assert.equal(stored.settings.channelRecommendations, true);
-  dom.window.document.getElementById("pause-toggle").click();
-  await new Promise(resolve => setTimeout(resolve, 0));
-  assert.equal(stored.settings.paused, false);
   dom.window.close();
 });
 
